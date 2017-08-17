@@ -48,7 +48,7 @@ public class Looper
 
     private static final Logger logger = LoggerFactory.getLogger(Looper.class);
 
-    private static final int excuteRound = 1000;//设置时钟周期，单位为毫秒
+    private static final int excuteRound = 50;//设置时钟周期，单位为毫秒
 
     private static final int threshold = 100;
 
@@ -62,13 +62,18 @@ public class Looper
     //    private String TargetChannel;
 
     //    @Scheduled(fixedRate = excuteRound)
-    @Scheduled(fixedRate = excuteRound)
     public void singleLoop()
     {
 
         if (MemoryQueue.length() < threshold)
         {
             logger.debug("Haven't reach the threshold");
+            return;
+        }
+
+        if (!Transformer.mapReady)
+        {
+            logger.debug("IP Region map is not ready");
             return;
         }
 
@@ -81,12 +86,18 @@ public class Looper
             payload.length(), dateFormat.format((new Date())));
     }
 
+    @Scheduled(fixedRate = excuteRound)
     public void singleLoopAddArea()
     {
 
         if (MemoryQueue.length() < threshold)
         {
             logger.debug("Haven't reach the threshold");
+            return;
+        }
+        if (!Transformer.mapReady)
+        {
+            logger.debug("IP Region map is not ready");
             return;
         }
 

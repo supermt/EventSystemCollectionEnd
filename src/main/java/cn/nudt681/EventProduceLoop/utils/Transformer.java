@@ -12,6 +12,7 @@
 package cn.nudt681.EventProduceLoop.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,11 +30,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class Transformer
 {
+    public static final Map<Long, String> regionMap = new HashMap<>();
+
+    public static Long[] ipArray;
+
     private static final Logger logger = LoggerFactory
         .getLogger(Transformer.class);
-    private static final String RegionTableName = "ip2regionuseint";
+    public static final String RegionTableName = "ip2regionuseint";
 
-    private static final String ipColumnName = "ipstop";
+    public static final String ipColumnName = "ipstop";
+
+    public static boolean mapReady = false;
 
     @Autowired
     JdbcTemplate jdbctemplate;
@@ -43,40 +50,50 @@ public class Transformer
         // List<Long> sourceIp = new ArrayList<>(1000);
 
         Long start = System.currentTimeMillis();
-        int i = 0;
-        /**
-         * for (i = 0; i < 1000; i++) { sourceIp.add(774162663l + i); }
-         */
-        StringBuilder sqlbuilder = new StringBuilder();
-        for (i = 0; i < sourceIp.size() - 1; i++)
-        {
-            sqlbuilder.append("(SELECT * FROM " + RegionTableName + " where "
-                + ipColumnName + " >= " + sourceIp.get(i) + " order by "
-                + ipColumnName + " limit 1)");
-            sqlbuilder.append("union all");
-        }
-        sqlbuilder.append("(SELECT * FROM " + RegionTableName + " where "
-            + ipColumnName + " >= " + sourceIp.get(i) + " order by "
-            + ipColumnName + " limit 1)");
-        Long end = System.currentTimeMillis();
-        logger.info("Takes " + (end - start) + " to build sql");
-
-        List<Map<String, Object>> result = jdbctemplate
-            .queryForList(sqlbuilder.toString());
-
-        start = System.currentTimeMillis();
-        logger.info("Takes " + (start - end) + " to mapping");
 
         List<String> resultarea = new ArrayList<>();
-        for (Map<String, Object> row : result)
+
+        for (Long ip : sourceIp)
         {
-            String province = row.get("province").toString();
-            String area = ("0").equals(province) ? row.get("country").toString()
-                : province;
-            resultarea.add(area);
+            int location = Transformer.binaryLocation(ip, Transformer.ipArray);
+            String targetArea = Transformer.regionMap
+                .get(Transformer.ipArray[location]);
+            resultarea.add(targetArea);
         }
-        end = System.currentTimeMillis();
-        logger.info("Takes " + (end - start) + " to handle result");
+
+        Long end = System.currentTimeMillis();
+        logger.info("Takes " + (end - start) + " to mapping");
         return resultarea;
     }
+
+    public static int binaryLocation(Long key, Long[] iArr)
+    {
+
+        int middle = 0;
+        int low = 0;
+        int high = iArr.length - 1;
+
+        while (low < high)
+        {
+            middle = (high + low + 1) / 2;
+            if (iArr[middle] == key)
+            {
+                break;
+            }
+            else if (iArr[middle] > key)
+            {
+                high = middle;
+            }
+            else
+            {
+                low = middle;
+            }
+            if (high - low == 1)
+            {
+                break;
+            }
+        }
+        return low;
+    }
+
 }

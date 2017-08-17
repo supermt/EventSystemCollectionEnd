@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 import cn.nudt681.EventProduceLoop.EventProduceLoopApplication;
 import cn.nudt681.EventProduceLoop.config.ChannelScalars;
 import cn.nudt681.EventProduceLoop.model.Event;
+import cn.nudt681.EventProduceLoop.utils.Transformer;
 
 /**
  * @ClassName: RandomMock
@@ -47,6 +48,11 @@ public class CustomerMock
     @Scheduled(fixedRate = 1000)
     public void sendLoop()
     {
+        if (!Transformer.mapReady)
+        {
+            return;
+        }
+
         for (int i = 0; i < looptime; i++)
         {
             new Thread()
@@ -135,6 +141,7 @@ public class CustomerMock
 
             results[i] = payload;
         }
+        System.out.println(new Gson().toJson(results));
 
         return results;
     }

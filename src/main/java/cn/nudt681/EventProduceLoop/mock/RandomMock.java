@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 
 import cn.nudt681.EventProduceLoop.config.ChannelScalars;
 import cn.nudt681.EventProduceLoop.model.Event;
+import cn.nudt681.EventProduceLoop.utils.Transformer;
 
 /**
  * @ClassName: RandomMock
@@ -34,7 +35,7 @@ import cn.nudt681.EventProduceLoop.model.Event;
 @Component
 public class RandomMock
 {
-    private static int looptime = 10;
+    private static int looptime = 900;
 
     private static int threadCount = 10;
 
@@ -44,6 +45,11 @@ public class RandomMock
     @Scheduled(fixedRate = 1000)
     public void sendLoop()
     {
+
+        if (!Transformer.mapReady)
+        {
+            return;
+        }
         for (int i = 0; i < threadCount; i++)
         {
             Thread singleThread = new Thread()
@@ -58,7 +64,6 @@ public class RandomMock
                         if (payload == null)
                             continue;
                         kafkaChannel.send(ChannelScalars.inputChannel, payload);
-                        // System.out.println("Sent");
                     }
                 }
             };
@@ -68,6 +73,10 @@ public class RandomMock
 
     public void singleLoop()
     {
+        if (!Transformer.mapReady)
+        {
+            return;
+        }
         for (int i = 0; i < threadCount; i++)
         {
             Thread singleThread = new Thread()

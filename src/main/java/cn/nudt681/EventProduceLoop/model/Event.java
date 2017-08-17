@@ -37,11 +37,11 @@ public class Event
 
     private Long srcip;
 
-    private String srcarea;
+    private String srcArea;
 
     private Long tarip;
 
-    private String tararea;
+    private String tarArea;
 
     private Integer srcport;
 
@@ -51,22 +51,22 @@ public class Event
 
     public String getSrcarea()
     {
-        return srcarea;
+        return srcArea;
     }
 
     public void setSrcarea(String srcarea)
     {
-        this.srcarea = srcarea;
+        this.srcArea = srcarea;
     }
 
     public String getTararea()
     {
-        return tararea;
+        return tarArea;
     }
 
     public void setTararea(String tararea)
     {
-        this.tararea = tararea;
+        this.tarArea = tararea;
     }
 
     public Long getEventid()
