@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "kafka.target.channel",
+    "type": "java.lang.String",
+    "description": "A description for 'kafka.target.channel'"
+  },
+  {
+    "name": "kafka.channel.output",
+    "type": "java.lang.String",
+    "description": "A description for 'kafka.channel.output'"
+  },
+  {
+    "name": "kafka.channel.input",
+    "type": "java.lang.String",
+    "description": "A description for 'kafka.channel.input'"
+  }
+]}
