@@ -55,9 +55,6 @@ public class CustomerMock
     @Value("${task.mock.customerGap}")
     private int gapTime = 10000;//默认每10秒启动进行一次
 
-    @Autowired
-    private JdbcTemplate jdbcTool;
-
     @Scheduled(fixedRate = 1000)
     public void sendLoop()
     {
@@ -90,7 +87,7 @@ public class CustomerMock
                         payload.setTime(
                             Timestamp.from(Calendar.getInstance().toInstant())
                                 .toString());
-                        //                System.out.println(new Gson().toJson(payload));
+                        //                        System.out.println(new Gson().toJson(payload));
                         kafkaChannel.send(ChannelScalars.inputChannel,
                             new Gson().toJson(payload));
                     }
@@ -131,9 +128,11 @@ public class CustomerMock
 
             //            Map<String, Object> curr = PluginEventIds.specialPairs
             //                .get(targetsids[i]);
-            Long sid = Long.valueOf(targetsids[i]);
 
-            Long pluginEventId = PluginEventIds.specialPairs.get(targetsids[i]);
+            Long sid = PluginEventIds.specialPairs
+                .get(Long.valueOf(targetsids[i]));// Long.valueOf(targetsids[i]);
+
+            Long pluginEventId = Long.valueOf(targetsids[i]);
 
             Event payload = new Event();
 
