@@ -174,10 +174,10 @@ public class Looper
                 payload //传送值为时间周期内收集到的数据列表
             );
 
-            logger.info("{} length of payload has been sent at {}",
+            logger.debug("{} length of payload has been sent at {}",
                 payload.length(), dateFormat.format((new Date())));
-
         }
+        logger.info("{} Events sent" ,curList.size());
     }
 
     @Scheduled(fixedRate = excuteRound)
