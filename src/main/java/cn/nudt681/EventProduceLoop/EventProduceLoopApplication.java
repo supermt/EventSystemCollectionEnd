@@ -45,7 +45,27 @@ public class EventProduceLoopApplication implements CommandLineRunner
         List<Map<String, Object>> result = jdbctemplate
             .queryForList("select * from " + pluginEventTableName);
 
-        PluginEventIds.eventList.addAll(result);
+        Integer[] CustomeIdArr =
+        { 195, 194, 246, 217, 222, 370, 513, 520, 8944, 9589, 19522, 19912,
+            1961 };
+        List<Integer> customeIdList = new ArrayList<Integer>();
+
+        for (int id : CustomeIdArr)
+        {
+            customeIdList.add(id);
+        }
+
+        for (Map<String, Object> row : result)
+        {
+            PluginEventIds.eventList.add(row);
+            if (customeIdList
+                .contains(Integer.valueOf(row.get("id").toString())))
+            {
+                PluginEventIds.specialPairs.put(
+                    Long.valueOf(row.get("id").toString()),
+                    Long.valueOf(row.get("sid").toString()));
+            }
+        }
 
         List<Map<String, Object>> recordCountries = jdbctemplate
             .queryForList("select * from " + oriIpRegionTableName);

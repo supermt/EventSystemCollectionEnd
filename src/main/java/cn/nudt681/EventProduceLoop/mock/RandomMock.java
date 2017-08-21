@@ -16,7 +16,10 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,9 +38,17 @@ import cn.nudt681.EventProduceLoop.utils.Transformer;
 @Component
 public class RandomMock
 {
-    private static int looptime = 900;
+    private static final Logger logger = LoggerFactory
+        .getLogger(RandomMock.class);
 
-    private static int threadCount = 10;
+    @Value("${task.mock.randomLoop}")
+    private int looptime = 900;
+
+    @Value("${task.mock.randomThread}")
+    private int threadCount = 10;
+
+    @Value("${task.mock.random}")
+    private boolean toggle = false;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaChannel;
@@ -45,11 +56,11 @@ public class RandomMock
     @Scheduled(fixedRate = 1000)
     public void sendLoop()
     {
-
-        if (!Transformer.mapReady)
-        {
+        if (!Transformer.mapReady || !toggle)
             return;
-        }
+
+        logger.debug("Producing {} * {} records", looptime, threadCount);
+
         for (int i = 0; i < threadCount; i++)
         {
             Thread singleThread = new Thread()
@@ -127,8 +138,10 @@ public class RandomMock
 
         Gson gson = new Gson();
         String result = gson.toJson(payload);
+
+        System.out.println(result);
+
         return result;
-        //        System.out.println(result);
 
     }
 

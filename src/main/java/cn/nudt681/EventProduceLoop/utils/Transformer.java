@@ -36,7 +36,7 @@ public class Transformer
 
     private static final Logger logger = LoggerFactory
         .getLogger(Transformer.class);
-    public static final String RegionTableName = "ip2regionuseint";
+    public static final String RegionTableName = "ip2region";
 
     public static final String ipColumnName = "ipstop";
 

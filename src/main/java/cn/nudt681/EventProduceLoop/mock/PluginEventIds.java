@@ -12,6 +12,7 @@
 package cn.nudt681.EventProduceLoop.mock;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,4 +31,6 @@ public class PluginEventIds
         { 8944, 9589 },
         { 370, 513, 520 },
         { 195, 194, 246, 217, 222 } };
+
+    public static final Map<Long, Long> specialPairs = new HashMap<Long, Long>();
 }

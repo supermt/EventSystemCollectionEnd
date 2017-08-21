@@ -16,7 +16,10 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 
-import cn.nudt681.EventProduceLoop.EventProduceLoopApplication;
 import cn.nudt681.EventProduceLoop.config.ChannelScalars;
 import cn.nudt681.EventProduceLoop.model.Event;
 import cn.nudt681.EventProduceLoop.utils.Transformer;
@@ -37,10 +39,21 @@ import cn.nudt681.EventProduceLoop.utils.Transformer;
 @Component
 public class CustomerMock
 {
-    private static int looptime = 10;
+
+    private static final Logger logger = LoggerFactory
+        .getLogger(CustomerMock.class);
+
+    @Value("${task.mock.customerThread}")
+    private static int threadNum = 10;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaChannel;
+
+    @Value("${task.mock.customer}")
+    private boolean toggle = false;
+
+    @Value("${task.mock.customerGap}")
+    private int gapTime = 10000;//默认每10秒启动进行一次
 
     @Autowired
     private JdbcTemplate jdbcTool;
@@ -48,12 +61,12 @@ public class CustomerMock
     @Scheduled(fixedRate = 1000)
     public void sendLoop()
     {
-        if (!Transformer.mapReady)
-        {
+        if (!Transformer.mapReady || !toggle)
             return;
-        }
 
-        for (int i = 0; i < looptime; i++)
+        logger.debug("Using {} threads to produce records", threadNum);
+
+        for (int i = 0; i < threadNum; i++)
         {
             new Thread()
             {
@@ -67,8 +80,8 @@ public class CustomerMock
                     {
                         try
                         {
-                            Thread.sleep(10000
-                                + Math.abs(new Random().nextInt() % 10000));
+                            Thread.sleep(gapTime
+                                + Math.abs(new Random().nextInt() % gapTime));
                         }
                         catch (InterruptedException e)
                         {
@@ -116,12 +129,11 @@ public class CustomerMock
         for (int i = 0; i < 4; i++)
         {
 
-            Map<String, Object> curr = jdbcTool.queryForMap("select * from "
-                + EventProduceLoopApplication.pluginEventTableName
-                + " where id = " + targetsids[i]);
-            Long sid = Long.valueOf(curr.get("id").toString());
+            //            Map<String, Object> curr = PluginEventIds.specialPairs
+            //                .get(targetsids[i]);
+            Long sid = Long.valueOf(targetsids[i]);
 
-            Long pluginEventId = Long.valueOf(curr.get("sid").toString());
+            Long pluginEventId = PluginEventIds.specialPairs.get(targetsids[i]);
 
             Event payload = new Event();
 
@@ -141,7 +153,7 @@ public class CustomerMock
 
             results[i] = payload;
         }
-        System.out.println(new Gson().toJson(results));
+        //        System.out.println(new Gson().toJson(results));
 
         return results;
     }

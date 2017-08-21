@@ -86,18 +86,18 @@ public class Looper
             payload.length(), dateFormat.format((new Date())));
     }
 
-    @Scheduled(fixedRate = excuteRound)
-    public void singleLoopAddArea()
+    //    @Scheduled(fixedRate = excuteRound)
+    public void arrayLoopAddArea()
     {
 
-        if (MemoryQueue.length() < threshold)
-        {
-            logger.debug("Haven't reach the threshold");
-            return;
-        }
         if (!Transformer.mapReady)
         {
             logger.debug("IP Region map is not ready");
+            return;
+        }
+        if (MemoryQueue.length() < threshold)
+        {
+            logger.debug("Haven't reach the threshold");
             return;
         }
 
@@ -130,5 +130,69 @@ public class Looper
         );
         logger.info("{} length of payload has been sent at {}",
             payload.length(), dateFormat.format((new Date())));
+    }
+
+    public void singleLoopAddArea()
+    {
+
+        if (!Transformer.mapReady)
+        {
+            logger.debug("IP Region map is not ready");
+            return;
+        }
+        if (MemoryQueue.length() < threshold)
+        {
+            logger.debug("Haven't reach the threshold");
+            return;
+        }
+
+        List<Event> curList = MemoryQueue.flush();
+
+        List<Long> srcIpList = new ArrayList<>();
+        List<Long> tarIpList = new ArrayList<>();
+        List<String> srcAreaList = new ArrayList<>();
+        List<String> tarAreaList = new ArrayList<>();
+
+        Gson gsontool = new Gson();
+
+        for (Event e : curList)
+        {
+            srcIpList.add(e.getSrcip());
+            tarIpList.add(e.getTarip());
+        }
+        srcAreaList.addAll(transtool.transIPtoArea(srcIpList));
+        tarAreaList.addAll(transtool.transIPtoArea(tarIpList));
+
+        for (int i = 0; i < curList.size() - 1; i++)
+        {
+            curList.get(i).setSrcarea(srcAreaList.get(i));
+            curList.get(i).setTararea(tarAreaList.get(i));
+
+            String payload = gsontool.toJson(curList.get(i));
+            this.template.send(ChannelScalars.outputChannel, //发送到 flume.output 队列中
+                String.valueOf(System.currentTimeMillis()), //键值为时间戳
+                payload //传送值为时间周期内收集到的数据列表
+            );
+
+            logger.info("{} length of payload has been sent at {}",
+                payload.length(), dateFormat.format((new Date())));
+
+        }
+    }
+
+    @Scheduled(fixedRate = excuteRound)
+    public void mainLoop()
+    {
+        boolean sendingArray = Boolean
+            .valueOf(env.getProperty("task.data-format.usingArray"));
+
+        if (sendingArray)
+        {
+            arrayLoopAddArea();
+        }
+        else
+        {
+            singleLoopAddArea();
+        }
     }
 }
