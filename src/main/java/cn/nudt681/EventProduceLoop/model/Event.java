@@ -11,8 +11,6 @@
  */
 package cn.nudt681.EventProduceLoop.model;
 
-import java.sql.Timestamp;
-
 /**
  * @ClassName: Event
  * @Description: TODO
@@ -20,7 +18,7 @@ import java.sql.Timestamp;
  */
 public class Event
 {
-    private Long eventid;
+    private String eventid;
 
     private Long plugin_id;// 确定 1001
 
@@ -69,12 +67,12 @@ public class Event
         this.tarArea = tararea;
     }
 
-    public Long getEventid()
+    public String getEventid()
     {
         return eventid;
     }
 
-    public void setEventid(Long eventid)
+    public void setEventid(String eventid)
     {
         this.eventid = eventid;
     }

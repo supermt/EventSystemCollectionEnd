@@ -13,14 +13,12 @@ package cn.nudt681.EventProduceLoop.mock;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.Map;
 import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -73,8 +71,10 @@ public class CustomerMock
                     Event[] payloads = customerMocking();
                     if (payloads == null)
                         return;
+                    int count = 0;
                     for (Event payload : payloads)
                     {
+                        count++;
                         try
                         {
                             Thread.sleep(gapTime
@@ -87,11 +87,11 @@ public class CustomerMock
                         payload.setTime(
                             Timestamp.from(Calendar.getInstance().toInstant())
                                 .toString());
-                        //                        System.out.println(new Gson().toJson(payload));
+                        //                        System.out
+                        //                            .println(count + " " + new Gson().toJson(payload));
                         kafkaChannel.send(ChannelScalars.inputChannel,
                             new Gson().toJson(payload));
                     }
-
                 }
             }.start();
         }

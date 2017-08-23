@@ -19,6 +19,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +30,7 @@ import com.google.gson.Gson;
 import cn.nudt681.EventProduceLoop.config.ChannelScalars;
 import cn.nudt681.EventProduceLoop.model.Event;
 import cn.nudt681.EventProduceLoop.utils.Transformer;
+import cn.nudt681.EventProduceLoop.utils.UUIDUtils;
 
 /**
  * @ClassName: KafkaConsumer
@@ -57,6 +59,12 @@ public class Looper
 
     @Autowired
     private Transformer transtool;
+
+    @Value("${taks.data-format.hasID}")
+    private boolean hasId;
+
+    @Value("${task.mock.partition}")
+    private int partition = 1;
 
     //    @Value("${spring.kafka.template.default-topic}")
     //    private String TargetChannel;
@@ -107,7 +115,6 @@ public class Looper
         List<Long> tarIpList = new ArrayList<>();
         List<String> srcAreaList = new ArrayList<>();
         List<String> tarAreaList = new ArrayList<>();
-
         for (Event e : curList)
         {
             srcIpList.add(e.getSrcip());
@@ -115,19 +122,22 @@ public class Looper
         }
         srcAreaList.addAll(transtool.transIPtoArea(srcIpList));
         tarAreaList.addAll(transtool.transIPtoArea(tarIpList));
-        for (int i = 0; i < curList.size() - 1; i++)
+        for (int i = 0; i < curList.size(); i++)
         {
             curList.get(i).setSrcarea(srcAreaList.get(i));
             curList.get(i).setTararea(tarAreaList.get(i));
+            if (hasId)
+                curList.get(i).setEventid(UUIDUtils.get32UUIDAsLowerCase());
         }
 
         Gson gsontool = new Gson();
 
         String payload = gsontool.toJson(curList);
         this.template.send(ChannelScalars.outputChannel, //发送到 flume.output 队列中
-            String.valueOf(System.currentTimeMillis()), //键值为时间戳
+            String.valueOf(System.currentTimeMillis() % partition), //键值为时间戳
             payload //传送值为时间周期内收集到的数据列表
         );
+
         logger.info("{} length of payload has been sent at {}",
             payload.length(), dateFormat.format((new Date())));
     }
@@ -163,21 +173,24 @@ public class Looper
         srcAreaList.addAll(transtool.transIPtoArea(srcIpList));
         tarAreaList.addAll(transtool.transIPtoArea(tarIpList));
 
-        for (int i = 0; i < curList.size() - 1; i++)
+        for (int i = 0; i < curList.size(); i++)
         {
             curList.get(i).setSrcarea(srcAreaList.get(i));
             curList.get(i).setTararea(tarAreaList.get(i));
+            if (hasId)
+                curList.get(i).setEventid(UUIDUtils.get32UUIDAsLowerCase());
 
             String payload = gsontool.toJson(curList.get(i));
             this.template.send(ChannelScalars.outputChannel, //发送到 flume.output 队列中
-                String.valueOf(System.currentTimeMillis()), //键值为时间戳
+                String.valueOf(System.currentTimeMillis() % partition), //键值为时间戳
                 payload //传送值为时间周期内收集到的数据列表
             );
 
             logger.debug("{} length of payload has been sent at {}",
                 payload.length(), dateFormat.format((new Date())));
         }
-        logger.info("{} Events sent" ,curList.size());
+
+        logger.info("{} Events sent", curList.size());
     }
 
     @Scheduled(fixedRate = excuteRound)
