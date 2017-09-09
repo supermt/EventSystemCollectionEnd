@@ -39,9 +39,13 @@ public class KafkaListenerBehaviour
     { ChannelScalars.inputChannel })
     public void listen(ConsumerRecord<?, String> cr) throws Exception
     {
-        logger.debug(cr.value());
-        MemoryQueue.addOneEvent(gson.fromJson(cr.value(), Event.class));
-        logger.debug("received data in size of {}", cr.serializedValueSize());
-        logger.debug("received data {}", cr.value());
+        try{
+            logger.debug(cr.value());
+            MemoryQueue.addOneEvent(gson.fromJson(cr.value(), Event.class));
+            logger.debug("received data in size of {}", cr.serializedValueSize());
+            logger.debug("received data {}", cr.value());
+        }catch(Exception e){
+            logger.error("Error Occurred");
+        }
     }
 }

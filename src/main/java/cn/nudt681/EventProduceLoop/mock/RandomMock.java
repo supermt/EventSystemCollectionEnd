@@ -65,7 +65,6 @@ public class RandomMock
         {
             Thread singleThread = new Thread()
             {
-
                 @Override
                 public void run()
                 {
